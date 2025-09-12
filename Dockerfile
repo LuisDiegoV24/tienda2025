@@ -1,6 +1,6 @@
 #Etapa 1: Compilación 
-from maven: 3.8.7:3.8.5-openjdk-17 as build
-workdir /a´´
+from maven:3.8.5-openjdk-17 as build
+workdir /app
 copy ..
 run mvn -f pom.xml clean package -DskipTests
 
