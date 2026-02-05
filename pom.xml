@@ -29,7 +29,9 @@
     <properties>
         <java.version>24</java.version>
         <maven.compiler.release>17</maven.compiler.release>
+        <start-class>com.tienda.TiendaApplication</start-class>
     </properties>
+    
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
