@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Firebase / Google service account keys
+src/main/resources/firebase/*.json
+
+nbactions.xml
+
+src/main/resources/firebase/*.json
