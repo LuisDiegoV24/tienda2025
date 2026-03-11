@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <body>
+
+        <!-- FRAGMENTO: TABS DE CATEGORÍAS -->
+        <section th:fragment="tabs" class="py-3 mb-4">
+            <div class="d-flex justify-content-center px-5">
+                <ul class="nav nav-underline">
+
+                    <!-- Opción para mostrar todo -->
+                    <li class="nav-item">
+                        <a th:href="@{/}"
+                           class="nav-link"
+                           th:classappend="${categoriaSeleccionada == 0} ? ' active fw-bold' : ''"
+                           aria-current="page">
+                            Todas
+                        </a>
+                    </li>
+
+                    <!-- Categorías dinámicas -->
+                    <li th:each="c : ${categorias}" class="nav-item">
+                        <a th:href="@{/categoria/{id}(id=${c.idCategoria})}"
+                           class="nav-link"
+                           th:classappend="${categoriaSeleccionada == c.idCategoria} ? ' active fw-bold' : ''">
+                            [[${c.descripcion}]]
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </section>
+
+        <!-- FRAGMENTO: TARJETAS DE PRODUCTOS -->
+        <section th:fragment="tarjetas" class="container py-4">
+
+            <div th:if="${productos == null or #lists.isEmpty(productos)}"
+                 class="alert alert-info text-center">
+                No hay productos para mostrar.
+            </div>
+
+            <div th:if="${productos != null and !#lists.isEmpty(productos)}"
+                 class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
+
+                <div th:each="p : ${productos}" class="col">
+                    <div class="card h-100 shadow-sm">
+
+                        <!-- Imagen -->
+                        <div class="d-flex justify-content-center align-items-center bg-light p-3" style="height: 200px;">
+                            <img th:if="${p.rutaImagen != null and !#strings.isEmpty(p.rutaImagen)}"
+                                 th:src="${p.rutaImagen}"
+                                 th:alt="${p.descripcion}"
+                                 class="img-fluid"
+                                 style="max-height: 100%; object-fit: contain;"/>
+
+                            <span th:if="${p.rutaImagen == null or #strings.isEmpty(p.rutaImagen)}"
+                                  class="text-muted">
+                                Sin imagen
+                            </span>
+                        </div>
+
+                        <!-- Nombre -->
+                        <div class="card-header bg-white">
+                            <h5 class="card-title text-center text-truncate mb-0"
+                                th:text="${p.descripcion}">
+                                Nombre del producto
+                            </h5>
+                        </div>
+
+                        <!-- Pie -->
+                        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                            <div class="fw-bold">
+                                <span class="text-success h5" th:text="${p.precio}">$0.00</span>
+
+                                <span th:if="${p.existencias > 0}"
+                                      class="badge text-bg-success ms-2"
+                                      th:text="${p.existencias} + ' unidades'">
+                                    0 unidades
+                                </span>
+
+                                <span th:unless="${p.existencias > 0}"
+                                      class="badge text-bg-danger ms-2">
+                                    Agotado
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </body>
+</html>

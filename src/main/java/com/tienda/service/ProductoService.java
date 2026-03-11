@@ -39,7 +39,7 @@ public class ProductoService {
     @Transactional
     public void save(Producto producto, MultipartFile imagenFile) {
         producto = productoRepository.save(producto);
-        if (!imagenFile.isEmpty()) { //Si no está vacío... pasaron una imagen...            
+        if (!imagenFile.isEmpty()) {
             try {
                 String rutaImagen = firebaseStorageService.uploadImage(
                         imagenFile, "producto",
@@ -54,18 +54,17 @@ public class ProductoService {
 
     @Transactional
     public void delete(Integer idProducto) {
-        // Verifica si la categoría existe antes de intentar eliminarlo
         if (!productoRepository.existsById(idProducto)) {
-            // Lanza una excepción para indicar que el usuario no fue encontrado
-            throw new IllegalArgumentException("La categoría con ID " + idProducto + " no existe.");
+            throw new IllegalArgumentException("El producto con ID " + idProducto + " no existe.");
         }
         try {
             productoRepository.deleteById(idProducto);
         } catch (DataIntegrityViolationException e) {
-            // Lanza una nueva excepción para encapsular el problema de integridad de datos
-            throw new IllegalStateException("No se puede eliminar la producto. Tiene datos asociados.", e);
+            throw new IllegalStateException("No se puede eliminar el producto. Tiene datos asociados.", e);
         }
     }
+
+    // CONSULTAS SEMANA #8
 
     @Transactional(readOnly = true)
     public List<Producto> consultaDerivada(BigDecimal precioInf, BigDecimal precioSup) {
@@ -82,4 +81,40 @@ public class ProductoService {
         return productoRepository.consultaSQL(precioInf, precioSup);
     }
 
+    // CONSULTA AVANZADA - PRODUCTO
+
+    @Transactional(readOnly = true)
+    public List<Producto> consultaProductoDerivada(BigDecimal precioMin,
+                                                   BigDecimal precioMax,
+                                                   Integer existenciasMin,
+                                                   String descripcionCategoria) {
+        return productoRepository
+                .findByActivoTrueAndPrecioBetweenAndExistenciasGreaterThanAndCategoriaActivoTrueAndCategoriaDescripcionContainingIgnoreCaseOrderByPrecioAsc(
+                        precioMin, precioMax, existenciasMin, descripcionCategoria);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Producto> consultaProductoJPQL(BigDecimal precioMin,
+                                               BigDecimal precioMax,
+                                               Integer existenciasMin,
+                                               String descripcionCategoria) {
+        return productoRepository.consultaProductoJPQL(
+                precioMin, precioMax, existenciasMin, descripcionCategoria);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Producto> consultaProductoSQL(BigDecimal precioMin,
+                                              BigDecimal precioMax,
+                                              Integer existenciasMin,
+                                              String descripcionCategoria) {
+        return productoRepository.consultaProductoSQL(
+                precioMin, precioMax, existenciasMin, descripcionCategoria);
+    }
+
+    // HOME - FILTRO POR CATEGORÍA
+    @Transactional(readOnly = true)
+    public List<Producto> getProductosPorCategoria(Integer idCategoria) {
+        return productoRepository
+                .findByActivoTrueAndCategoriaIdCategoriaAndCategoriaActivoTrueOrderByPrecioAsc(idCategoria);
+    }
 }

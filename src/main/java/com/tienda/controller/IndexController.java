@@ -9,40 +9,36 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 public class IndexController {
-    
-    // Las últimas versiones de Spring, recomiendan utilziar final y contructor en lugar de @autowired
+
     private final ProductoService productoService;
     private final CategoriaService categoriaService;
-    
-    // (Spring inyecta automáticamente)
+
     public IndexController(ProductoService productoService, CategoriaService categoriaService) {
         this.productoService = productoService;
         this.categoriaService = categoriaService;
     }
-    
+
     @GetMapping("/")
     public String cargarPaginaInicio(Model model) {
-        var lista = productoService.getProductos(true);
-        model.addAttribute("productos", lista);
+        var productos = productoService.getProductos(true);
         var categorias = categoriaService.getCategorias(true);
+
+        model.addAttribute("productos", productos);
         model.addAttribute("categorias", categorias);
+        model.addAttribute("categoriaSeleccionada", 0);
+
         return "/index";
     }
-    
-    @GetMapping("/consultas/{idCategoria}")
-    public String listado(@PathVariable("idCategoria") Integer idCategoria, Model model) {
-        model.addAttribute("idCategoriaActual", idCategoria);
-        var categoriaOptional = categoriaService.getCategoria(idCategoria);
-        if (categoriaOptional.isEmpty()) {
-            //Puede ser que no se exista la categoria buscada...
-            model.addAttribute("productos", java.util.Collections.emptyList());
-        } else {
-            var categoria = categoriaOptional.get();
-            var productos = categoria.getProductos();
-            model.addAttribute("productos", productos);
-        }
+
+    @GetMapping("/categoria/{idCategoria}")
+    public String productosPorCategoria(@PathVariable("idCategoria") Integer idCategoria, Model model) {
+        var productos = productoService.getProductosPorCategoria(idCategoria);
         var categorias = categoriaService.getCategorias(true);
+
+        model.addAttribute("productos", productos);
         model.addAttribute("categorias", categorias);
+        model.addAttribute("categoriaSeleccionada", idCategoria);
+
         return "/index";
     }
 }

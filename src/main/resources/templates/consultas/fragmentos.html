@@ -1,100 +1,329 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
-    <head th:replace="~{general/plantilla :: head}"/>
+      xmlns:th="http://www.thymeleaf.org">
 
     <body>
-        <!-- fragmento 1 para Agregar producto en ventana modal -->
-        <section th:fragment="tabs" class="py-3 mb-4">
-            <div class="d-flex justify-content-center px-5"> 
-                <ul class="nav nav-underline">
-                    <li class="nav-item">
-                        <a th:href="@{/}"                            
-                           class="nav-link" 
-                           aria-current="page">
-                            [[#{consultas.todas}]]
-                        </a>
-                    </li>
-                    <li th:each="c : ${categorias}" class="nav-item">
-                        <a th:href="@{/consultas/{id}(id=${c.idCategoria})}"                           
-                           class="nav-link">
-                            [[${c.descripcion}]]
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </section>
 
-        <!-- fragmento 2 para el listado de tarjetas de productos -->
-        <section th:fragment="tarjetas" class="container py-4">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
-                <div th:each="p : ${productos}" class="col">
-                    <div class="card h-100 shadow-sm">
-                        <div class="d-flex justify-content-center align-items-center bg-light p-3" style="height: 200px;">
-                            <img th:src="${p.rutaImagen}" class="img-fluid" 
-                                 th:alt="${p.descripcion}" 
-                                 style="max-height: 100%; object-fit: contain;"/>
-                        </div>
-                        <div class="card-header bg-white">
-                            <h5 class="card-title text-center text-truncate mb-0" th:text="${p.descripcion}">Título</h5>
-                        </div>
-                        <div class="card-body d-flex flex-column">
-                            <p class="card-text text-muted mb-auto text-truncate" th:text="${p.detalle}">Detalle</p>
-                        </div>
-                        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-                            <div class="fw-bold">
-                                <span class="text-success h5" th:text="${#numbers.formatCurrency(p.precio)}">$99.99</span>
-                                <span th:if="${p.existencias > 0}" class="badge text-bg-success ms-2" th:text="${p.existencias} + ' unidades'"></span>
-                                <span th:unless="${p.existencias > 0}" class="badge text-bg-danger ms-2">Agotado</span>
+        <!-- FORMULARIOS DE CONSULTAS -->
+        <section th:fragment="consultas" class="container py-4">
+
+            <h2 class="mb-4 text-center">Consultas Avanzadas</h2>
+
+            <!-- CONSULTA DE PRODUCTO -->
+            <div class="mb-5">
+                <h3 class="mb-3">Consulta avanzada de Producto</h3>
+
+                <div class="row g-3">
+
+                    <!-- Derivada -->
+                    <div class="col-md-4">
+                        <form th:action="@{/consultas/producto/derivada}" method="post" class="card shadow-sm h-100">
+                            <div class="card-header bg-primary text-white text-center">
+                                <h5 class="mb-0">Derivada</h5>
                             </div>
-                            <form th:action="@{/carrito/agregar}" th:method="POST" class="d-inline">
-                                <input type="hidden" th:value="${p.idProducto}" name="idProducto"/>
-                                <button type="submit" 
-                                        class="btn btn-sm btn-primary" 
-                                        th:disabled="${p.existencias == 0}"
-                                        onclick="addCart(this.form)">
-                                    <i class="fas fa-cart-plus"></i>
-                                </button>
-                            </form>
-                        </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Precio mínimo</label>
+                                    <input type="number" step="0.01" name="precioMin"
+                                           th:value="${precioMin}"
+                                           class="form-control" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Precio máximo</label>
+                                    <input type="number" step="0.01" name="precioMax"
+                                           th:value="${precioMax}"
+                                           class="form-control" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Existencias mínimas</label>
+                                    <input type="number" name="existenciasMin"
+                                           th:value="${existenciasMin}"
+                                           class="form-control" min="0" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Texto en descripción de categoría</label>
+                                    <input type="text" name="descripcionCategoria"
+                                           th:value="${descripcionCategoria}"
+                                           class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" class="btn btn-primary">Buscar Derivada</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- JPQL -->
+                    <div class="col-md-4">
+                        <form th:action="@{/consultas/producto/jpql}" method="post" class="card shadow-sm h-100">
+                            <div class="card-header bg-warning text-dark text-center">
+                                <h5 class="mb-0">JPQL</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Precio mínimo</label>
+                                    <input type="number" step="0.01" name="precioMin"
+                                           th:value="${precioMin}"
+                                           class="form-control" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Precio máximo</label>
+                                    <input type="number" step="0.01" name="precioMax"
+                                           th:value="${precioMax}"
+                                           class="form-control" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Existencias mínimas</label>
+                                    <input type="number" name="existenciasMin"
+                                           th:value="${existenciasMin}"
+                                           class="form-control" min="0" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Texto en descripción de categoría</label>
+                                    <input type="text" name="descripcionCategoria"
+                                           th:value="${descripcionCategoria}"
+                                           class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" class="btn btn-warning">Buscar JPQL</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- SQL -->
+                    <div class="col-md-4">
+                        <form th:action="@{/consultas/producto/sql}" method="post" class="card shadow-sm h-100">
+                            <div class="card-header bg-success text-white text-center">
+                                <h5 class="mb-0">SQL</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Precio mínimo</label>
+                                    <input type="number" step="0.01" name="precioMin"
+                                           th:value="${precioMin}"
+                                           class="form-control" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Precio máximo</label>
+                                    <input type="number" step="0.01" name="precioMax"
+                                           th:value="${precioMax}"
+                                           class="form-control" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Existencias mínimas</label>
+                                    <input type="number" name="existenciasMin"
+                                           th:value="${existenciasMin}"
+                                           class="form-control" min="0" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Texto en descripción de categoría</label>
+                                    <input type="text" name="descripcionCategoria"
+                                           th:value="${descripcionCategoria}"
+                                           class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" class="btn btn-success">Buscar SQL</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONSULTA DE CATEGORÍA -->
+            <div class="mb-5">
+                <h3 class="mb-3">Consulta avanzada de Categoría</h3>
+
+                <div class="row g-3">
+
+                    <!-- Derivada -->
+                    <div class="col-md-4">
+                        <form th:action="@{/consultas/categoria/derivada}" method="post" class="card shadow-sm h-100">
+                            <div class="card-header bg-primary text-white text-center">
+                                <h5 class="mb-0">Derivada</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad mínima de productos</label>
+                                    <input type="number" name="cantidadMinProductos"
+                                           th:value="${cantidadMinProductos}"
+                                           class="form-control" min="1" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Texto en descripción</label>
+                                    <input type="text" name="textoDescripcion"
+                                           th:value="${textoDescripcion}"
+                                           class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" class="btn btn-primary">Buscar Derivada</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- JPQL -->
+                    <div class="col-md-4">
+                        <form th:action="@{/consultas/categoria/jpql}" method="post" class="card shadow-sm h-100">
+                            <div class="card-header bg-warning text-dark text-center">
+                                <h5 class="mb-0">JPQL</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad mínima de productos</label>
+                                    <input type="number" name="cantidadMinProductos"
+                                           th:value="${cantidadMinProductos}"
+                                           class="form-control" min="1" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Texto en descripción</label>
+                                    <input type="text" name="textoDescripcion"
+                                           th:value="${textoDescripcion}"
+                                           class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" class="btn btn-warning">Buscar JPQL</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- SQL -->
+                    <div class="col-md-4">
+                        <form th:action="@{/consultas/categoria/sql}" method="post" class="card shadow-sm h-100">
+                            <div class="card-header bg-success text-white text-center">
+                                <h5 class="mb-0">SQL</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad mínima de productos</label>
+                                    <input type="number" name="cantidadMinProductos"
+                                           th:value="${cantidadMinProductos}"
+                                           class="form-control" min="1" required/>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Texto en descripción</label>
+                                    <input type="text" name="textoDescripcion"
+                                           th:value="${textoDescripcion}"
+                                           class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" class="btn btn-success">Buscar SQL</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section th:fragment='consultas' class='row row-cols-4 p-2'>
-            <div th:replace="~{consultas/fragmentos :: formConsulta('primary',#{consultas.derivadas},'/consultas/consultaDerivada')}"/>
-            <div th:replace="~{consultas/fragmentos :: formConsulta('warning',#{consultas.jpql},'/consultas/consultaJPQL')}"/>
-            <div th:replace="~{consultas/fragmentos :: formConsulta('success',#{consultas.sql},'/consultas/consultaSQL')}"/>
-            <div class='card'><p>Acá va su Práctica #2</p></div>
-        </section>
+        <!-- RESULTADOS -->
+        <section th:fragment="resultados" class="container pb-5">
 
-        <div th:fragment='formConsulta(colorForm, textoForm, urlForm)'>
-            <form method="post" th:action='@{${urlForm}}' class='was-validated'>
-                <div class='card p-2'>
-                    <div class="card-header text-center text-white" th:classappend="${'bg-'+colorForm}">
-                        <h5>[[${textoForm}]]</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class='mb-3'>
-                            <label>[[#{consultas.precio.inferior}]]</label>
-                            <input type="number" name='precioInf' th:value='${precioInf}'
-                                   class='form-control' min="0" required/>
+            <!-- Resultados de Producto en tarjetas -->
+            <div th:if="${resultadoProductos != null}" class="mb-5 mt-4">
+                <h4 class="mb-3 text-center" th:text="'Resultado Producto - ' + ${tipoConsultaProducto}"></h4>
+
+                <div th:if="${#lists.isEmpty(resultadoProductos)}"
+                     class="alert alert-info text-center">
+                    No se encontraron productos con los criterios indicados.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(resultadoProductos)}"
+                     class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
+
+                    <div th:each="p : ${resultadoProductos}" class="col">
+                        <div class="card h-100 shadow-sm">
+
+                            <!-- Imagen -->
+                            <div class="d-flex justify-content-center align-items-center bg-light p-3" style="height: 200px;">
+                                <img th:if="${p.rutaImagen != null and !#strings.isEmpty(p.rutaImagen)}"
+                                     th:src="${p.rutaImagen}"
+                                     th:alt="${p.descripcion}"
+                                     class="img-fluid"
+                                     style="max-height: 100%; object-fit: contain;"/>
+
+                                <span th:if="${p.rutaImagen == null or #strings.isEmpty(p.rutaImagen)}"
+                                      class="text-muted">
+                                    Sin imagen
+                                </span>
+                            </div>
+
+                            <!-- Nombre -->
+                            <div class="card-header bg-white">
+                                <h5 class="card-title text-center text-truncate mb-0"
+                                    th:text="${p.descripcion}">
+                                    Nombre del producto
+                                </h5>
+                            </div>
+
+                            <!-- Detalle -->
+                            <div class="card-body d-flex flex-column">
+                                <p class="card-text text-muted mb-auto"
+                                   th:text="${p.detalle}">
+                                    Detalle del producto
+                                </p>
+                            </div>
+
+                            <!-- Pie -->
+                            <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                                <div class="fw-bold">
+                                    <span class="text-success h5" th:text="${p.precio}">$0.00</span>
+
+                                    <span th:if="${p.existencias > 0}"
+                                          class="badge text-bg-success ms-2"
+                                          th:text="${p.existencias} + ' unidades'">
+                                        0 unidades
+                                    </span>
+
+                                    <span th:unless="${p.existencias > 0}"
+                                          class="badge text-bg-danger ms-2">
+                                        Agotado
+                                    </span>
+                                </div>
+
+                                <form th:action="@{/carrito/agregar}" method="post" class="d-inline">
+                                    <input type="hidden" th:value="${p.idProducto}" name="idProducto"/>
+                                    <button type="submit"
+                                            class="btn btn-sm btn-primary"
+                                            th:disabled="${p.existencias == 0}"
+                                            onclick="addCart(this.form)">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                </form>
+                            </div>
+
                         </div>
-                        <div class='mb-3'>
-                            <label>[[#{consultas.precio.superior}]]</label>
-                            <input type="number" name='precioSup' th:value='${precioSup}'
-                                   class='form-control' min="0" required/>
-                        </div>
-                    </div>
-                    <div class="card-footer text-center">
-                        <button type='submit' class='btn text-white' th:classappend="${'btn-'+colorForm}">
-                            <i class='fa-solid fa-magnifying-glass'></i> [[${textoForm}]]
-                        </button>
                     </div>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Resultados de Categoría -->
+            <div th:if="${resultadoCategorias != null}">
+                <h4 class="mb-3" th:text="'Resultado Categoría - ' + ${tipoConsultaCategoria}"></h4>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID Categoría</th>
+                                <th>Descripción</th>
+                                <th>Cantidad de Productos Activos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="c : ${resultadoCategorias}">
+                                <td th:text="${c.idCategoria}"></td>
+                                <td th:text="${c.descripcion}"></td>
+                                <td th:text="${c.cantidadProductos}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
     </body>
 </html>
